@@ -1,10 +1,15 @@
 import gym
 import torch
 import numpy as np 
+import deque
 from critic_network import Critic_Network
 from actor_network import Actor_Network
 
-def main():
+class train(object):
+    def __init__(self, env):
+        self.env = env
+        self.buffer = deque(maxlen = 2000)
+def train(env):
     env = gym.make("Pendulum-v0")
     critic_network = Critic_Network(env)
     actor_network = Actor_Network(env)
@@ -16,7 +21,3 @@ def main():
         value = critic_network(state)
         next_state, reward, done, info = env.step(action)
         state= next_state
-
-
-if __name__ == '__main__':
-    main()
