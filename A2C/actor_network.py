@@ -40,26 +40,31 @@ class Actor_Network(nn.Module):
             self.MLP = False
             self.CNN = True
             #여기 구현은 나중에~~~
+        
 
 
     def MLP_Agent(self):
         self.linear1 = nn.Linear(self.state_shape, 64).to(self.device, dtype = torch.float64)
         self.linear2 = nn.Linear(64, 64).to(self.device, dtype = torch.float64)
-        self.output = nn.Linear(64, self.action_shape).to(self.device, dtype = torch.float64)
+        self.mu_output = nn.Linear(64, self.action_shape).to(self.device, dtype = torch.float64)
+        self.std_output = nn.Linear(64, self.action_shape).to(self.device, dtype = torch.float64)
 
     
     def forward(self, x):
         if(self.MLP == True):
-            x = self.MLP_forward(x)
+            #continuous action에 대해서만 진행함
+            mu, std = self.MLP_forward(x)
         else:
             pass
             #구현해야하는 곳
-        return x.detach().numpy()
+        return mu.detach(), std.detach()
 
     def MLP_forward(self, x):
-        
         x = torch.from_numpy(x).detach().to(self.device, dtype = torch.float64)
         x = F.relu(self.linear1(x))
         x = F.relu(self.linear2(x))
-        x = self.output(x)
-        return x
+        mu = self.mu_output(x)
+        std = torch.sigmoid(self.std_output(x))
+        return mu, std
+        
+        
