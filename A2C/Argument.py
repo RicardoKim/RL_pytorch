@@ -4,4 +4,4 @@ class argument():
         self.BATCH_SIZE = 32
         self.ACTOR_LEARNING_RATE = 0.0001
         self.CRITIC_LEARNING_RATE = 0.001
-        self.TRAIN_EPOCH = 1
+        self.TRAIN_EPOCH = 1000
