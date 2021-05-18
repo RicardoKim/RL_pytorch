@@ -14,13 +14,13 @@ def drawing_test_result():
           os.makedirs(directory)
 
     run_num_pretrained = 1  
-    csv_directory = "PPO_logs" + '/' + env_name + '/'
-    checkpoint_path = csv_directory + "PPO_{}_log_{}.csv".format(env_name, run_num_pretrained)
+    csv_directory = "PPO_save" + '/' + env_name + '/'
+    checkpoint_path = csv_directory + "log.csv".format(env_name)
     data = pd.read_csv(checkpoint_path)
     fig=plt.figure()
     plt.ion()
     plt.ioff()
-    plt.plot(data['timestep'], data['reward'])
+    plt.plot(data['Epi'], data['Reward'])
     plt.savefig(directory + "PPO_train_result_{}.png".format(run_num_pretrained))
 
 if __name__ == "__main__":
