@@ -83,7 +83,7 @@ class agent(object):
                     continue
                 else:
                     self.actor_train()
-                    # self.critic_train()
+                    self.critic_train()
                     self.buffer.clear()
                 state= next_state
             print('Episode : ', episode, "Episode Reward", episode_reward.numpy)
