@@ -57,7 +57,7 @@ class Actor_Network(nn.Module):
         else:
             pass
             #구현해야하는 곳
-        return mu.detach(), std.detach()
+        return mu, std
 
     def MLP_forward(self, x):
         x = torch.from_numpy(x).detach().to(self.device, dtype = torch.float64)

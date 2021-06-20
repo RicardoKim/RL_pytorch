@@ -54,7 +54,7 @@ class Critic_Network(nn.Module):
         else:
             pass
             #구현해야하는 곳
-        return x.detach().numpy()
+        return x.detach()
 
     def MLP_forward(self, x):
         

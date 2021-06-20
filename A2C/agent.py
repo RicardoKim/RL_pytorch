@@ -26,8 +26,8 @@ class agent(object):
         else:
             td_target = reward + self.argument.GAMMA * next_state_value
             advantage = td_target - state_value
-            advantage = advantage.detach().numpy()
-            td_target = td_target.detach().numpy()
+            advantage = advantage.detach()
+            td_target = td_target.detach()
 
         return  advantage, td_target
     
@@ -59,8 +59,6 @@ class agent(object):
 
 
     def train(self, render = False):
-        critic_network = Critic_Network(self.env)
-        actor_network = Actor_Network(self.env)
         done = False
         state = self.env.reset()
 
@@ -69,7 +67,7 @@ class agent(object):
             while(done == False):
                 if render:
                     self.env.render()
-                action = self.get_action(state)
+                action = self.get_action(state).detach().numpy()
                 next_state, reward, done, info = self.env.step(action)
 
                 state_value = self.critic_network(state)
@@ -99,15 +97,14 @@ class agent(object):
         log_policy_pdf = self.log_pdf(mu_s.detach().numpy(), std_s.detach().numpy(), actions)
         loss_policy = torch.multiply(advantages, log_policy_pdf)
         loss = - torch.sum(loss_policy)
-        self.actor_optimizer.zero_grad()
         loss.backward()
         self.actor_optimizer.step()
 
     def critic_train(self):
         states, _, td_targets, _ = self.unpack_batch()
         state_values = self.critic_network(states)
+        td_targets = torch.tensor(td_targets)
         diff = (td_targets - state_values)
-        loss = torch.mean(0.5 * diff.pow(2))
-        self.critic_optimizer.zero_grad()
+        loss = torch.mean(0.5 * torch.square(diff))
         loss.backward()
         self.critic_optimizer.step()
