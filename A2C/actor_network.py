@@ -44,10 +44,10 @@ class Actor_Network(nn.Module):
 
 
     def MLP_Agent(self):
-        self.linear1 = nn.Linear(self.state_shape, 64).to(self.device, dtype = torch.float64)
-        self.linear2 = nn.Linear(64, 64).to(self.device, dtype = torch.float64)
-        self.mu_output = nn.Linear(64, self.action_shape).to(self.device, dtype = torch.float64)
-        self.std_output = nn.Linear(64, self.action_shape).to(self.device, dtype = torch.float64)
+        self.linear1 = nn.Linear(self.state_shape, 64)
+        self.linear2 = nn.Linear(64, 64)
+        self.mu_output = nn.Linear(64, self.action_shape)
+        self.std_output = nn.Linear(64, self.action_shape)
 
     
     def forward(self, x):
@@ -60,7 +60,6 @@ class Actor_Network(nn.Module):
         return mu, std
 
     def MLP_forward(self, x):
-        x = torch.from_numpy(x).detach().to(self.device, dtype = torch.float64)
         x = F.relu(self.linear1(x))
         x = F.relu(self.linear2(x))
         mu = self.mu_output(x)

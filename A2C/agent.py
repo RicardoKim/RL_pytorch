@@ -21,13 +21,9 @@ class agent(object):
         if done:
             td_target = reward
             advantage = td_target - state_value
-            advantage = advantage.detach().numpy()
-            td_target = td_target.detach().numpy().reshape(-1, )
         else:
             td_target = reward + self.argument.GAMMA * next_state_value
             advantage = td_target - state_value
-            advantage = advantage.detach()
-            td_target = td_target.detach()
 
         return  advantage, td_target
     
@@ -54,7 +50,7 @@ class agent(object):
         
         var = std**2
         log_policy_pdf = -0.5 * (action - mu) ** 2 / var - 0.5 * np.log(var * 2 * np.pi)
-        log_policy_pdf = torch.tensor(log_policy_pdf, dtype=torch.float64 , device = self.actor_network.device)
+        log_policy_pdf = torch.tensor(log_policy_pdf, dtype=torch.float64)
         return torch.sum(log_policy_pdf, axis = 1).reshape(-1, 1)
 
 

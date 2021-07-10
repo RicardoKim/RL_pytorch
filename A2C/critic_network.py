@@ -41,11 +41,10 @@ class Critic_Network(nn.Module):
             self.CNN = True
             #여기 구현은 나중에~~~
 
-
     def MLP_Agent(self):
-        self.linear1 = nn.Linear(self.state_shape, 64).to(self.device, dtype = torch.float64)
-        self.linear2 = nn.Linear(64, 64).to(self.device, dtype = torch.float64)
-        self.output = nn.Linear(64, self.action_shape).to(self.device, dtype = torch.float64)
+        self.linear1 = nn.Linear(self.state_shape, 64)
+        self.linear2 = nn.Linear(64, 64)
+        self.output = nn.Linear(64, self.action_shape)
 
     
     def forward(self, x):
@@ -57,8 +56,7 @@ class Critic_Network(nn.Module):
         return x.detach()
 
     def MLP_forward(self, x):
-        
-        x = torch.from_numpy(x).detach().to(self.device, dtype = torch.float64)
+
         x = F.relu(self.linear1(x))
         x = F.relu(self.linear2(x))
         x = self.output(x)
