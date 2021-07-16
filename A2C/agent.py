@@ -1,106 +1,108 @@
-import gym
 import torch
-import numpy as np 
+import numpy as np
+import pandas as pd
+import os 
 from collections import deque
-from critic_network import Critic_Network
-from actor_network import Actor_Network
+from Model.MLPmodel import MLPAGENT
+from Model.MLPmodel import MLPCRITIC
 from Argument import argument
+from torch.distributions import Normal
 import torch.optim as optim
+import torch.nn.functional as F
 
 class agent(object):
     def __init__(self, env):
         self.env = env
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.buffer = deque(maxlen = 2000)
         self.argument = argument()
-        self.critic_network = Critic_Network(env)
-        self.actor_network = Actor_Network(env)
+        self.actor_network = MLPAGENT(env)
+        self.critic_network  = MLPCRITIC(env)
         self.actor_optimizer = optim.Adam(self.actor_network.parameters(), lr = self.argument.ACTOR_LEARNING_RATE)
         self.critic_optimizer = optim.Adam(self.critic_network.parameters(), lr = self.argument.CRITIC_LEARNING_RATE)
 
-    def compute_advantage_td_target(self, reward, state_value, next_state_value, done):
-        if done:
-            td_target = reward
-            advantage = td_target - state_value
-        else:
-            td_target = reward + self.argument.GAMMA * next_state_value
-            advantage = td_target - state_value
-
-        return  advantage, td_target
     
     def get_action(self, state):
+        state = torch.FloatTensor(state)
         mu, std = self.actor_network(state)
-        epsilon = torch.randn_like(std)
-        return mu + std * epsilon
+        normal_distribution = Normal(mu, std)
+        action = normal_distribution.sample()
+        return action
 
     def unpack_batch(self):
         state= np.zeros((self.argument.BATCH_SIZE, self.actor_network.state_shape))
+        next_state = np.zeros((self.argument.BATCH_SIZE, self.critic_network.state_shape))
         action = np.zeros((self.argument.BATCH_SIZE, self.actor_network.action_shape))
-
-        td_targets = np.zeros((self.argument.BATCH_SIZE, self.critic_network.action_shape))
-        advantages = np.zeros((self.argument.BATCH_SIZE, self.critic_network.action_shape))
+        reward = np.zeros((self.argument.BATCH_SIZE, 1))
+        done = np.zeros((self.argument.BATCH_SIZE, 1))
 
         for i in range(len(self.buffer)):
             state[i] = self.buffer[i][0]
-            action[i] = self.buffer[i][1]
-            td_targets[i] = self.buffer[i][2]
-            advantages[i] = self.buffer[i][3]
-        return state, action, td_targets, advantages
+            action[i] = self.buffer[i][2]
+            next_state[i] = self.buffer[i][1]
+            reward[i] = self.buffer[i][3]
+            done[i] = self.buffer[i][4]
+        return state, action, next_state, reward, done
 
-    def log_pdf(self, mu, std, action):
-        
-        var = std**2
-        log_policy_pdf = -0.5 * (action - mu) ** 2 / var - 0.5 * np.log(var * 2 * np.pi)
-        log_policy_pdf = torch.tensor(log_policy_pdf, dtype=torch.float64)
-        return torch.sum(log_policy_pdf, axis = 1).reshape(-1, 1)
 
 
     def train(self, render = False):
-        done = False
-        state = self.env.reset()
-
+        directory = "Log"
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        model_directory = "saved_model"
+        if not os.path.exists(model_directory):
+            os.makedirs(model_directory)
+        index = 0
+        log = pd.DataFrame(columns= ['episode_reward', 'actor_loss', 'critic_loss'], index = np.arange(0 , self.argument.TRAIN_EPOCH, 500))
         for episode in range(self.argument.TRAIN_EPOCH):
-            episode_reward = 0    
-            while(done == False):
+            episode_reward = 0
+            state = self.env.reset()
+            done = False    
+            while done == False :
                 if render:
                     self.env.render()
-                action = self.get_action(state).detach().numpy()
-                next_state, reward, done, info = self.env.step(action)
+                action = self.get_action(state)
+                next_state, reward, done, _ = self.env.step(action)
 
-                state_value = self.critic_network(state)
-                next_state_value = self.critic_network(next_state)
-                advantage, td_target = self.compute_advantage_td_target(reward, state_value, next_state_value, done)
-                
-                self.buffer.append((state, action, td_target, advantage))
+                train_reward = (reward + 8.1) / 8.1
+                self.buffer.append((state, next_state, action, train_reward, done))
                 episode_reward += reward
 
                 if(len(self.buffer) < self.argument.BATCH_SIZE):
                     continue
                 else:
-                    self.actor_train()
-                    self.critic_train()
+                    batch_state, batch_action, batch_next_state, batch_reward, batch_done = self.unpack_batch()
+                    batch_state = torch.FloatTensor(batch_state).to(self.device)
+                    batch_action = torch.FloatTensor(batch_action).to(self.device)
+                    batch_next_state = torch.FloatTensor(batch_next_state).to(self.device)
+                    batch_reward = torch.FloatTensor(batch_reward).to(self.device)
+                    batch_done = torch.FloatTensor(batch_done).to(self.device)
+                    with torch.no_grad():
+                        value_target = batch_reward + self.argument.GAMMA * (1 - batch_done) * self.critic_network(batch_next_state)
+                        advantage = value_target - self.critic_network(batch_state)
+                    mu, std = self.actor_network(batch_state)
+                    normal_distribution = Normal(mu, std)
+                    log_prob = normal_distribution.log_prob(batch_action)
+                    actor_loss = - log_prob * advantage
+                    actor_loss = actor_loss.mean()
+                    self.actor_optimizer.zero_grad()
+                    actor_loss.backward()
+                    self.actor_optimizer.step()
+
+                    value_loss = F.mse_loss(value_target, self.critic_network(batch_state))
+                    self.critic_optimizer.zero_grad()
+                    value_loss.backward()
+                    self.critic_optimizer.step()
                     self.buffer.clear()
                 state= next_state
-            print('Episode : ', episode, "Episode Reward", episode_reward.numpy)
+            if episode % 10 == 0:
+                print('Episode : ', episode, "Episode Reward", episode_reward)
+            if episode % 500 == 0:
+                log.iloc[index]['episode_reward'] = episode_reward.numpy()
+                log.iloc[index]['actor_loss'] = actor_loss.detach().numpy()
+                log.iloc[index]['critic_loss'] = value_loss.detach().numpy()
+                log.to_csv(directory + "/log.csv")
+                torch.save(self.actor_network.state_dict(), model_directory + '/saved_model.para')
+                index += 1 
             
-    
-
-    
-    def actor_train(self):
-        states, actions, _, advantages = self.unpack_batch()
-        advantages = torch.tensor(advantages, dtype=torch.float64 , device = self.actor_network.device, requires_grad = True)
-        self.actor_network.train()
-        mu_s, std_s = self.actor_network(states)
-        log_policy_pdf = self.log_pdf(mu_s.detach().numpy(), std_s.detach().numpy(), actions)
-        loss_policy = torch.multiply(advantages, log_policy_pdf)
-        loss = - torch.sum(loss_policy)
-        loss.backward()
-        self.actor_optimizer.step()
-
-    def critic_train(self):
-        states, _, td_targets, _ = self.unpack_batch()
-        state_values = self.critic_network(states)
-        td_targets = torch.tensor(td_targets)
-        diff = (td_targets - state_values)
-        loss = torch.mean(0.5 * torch.square(diff))
-        loss.backward()
-        self.critic_optimizer.step()

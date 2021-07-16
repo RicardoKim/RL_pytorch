@@ -6,9 +6,9 @@ import torch.nn.functional as F
 # 현재 버전은 state가 1차원임을 가정하고 진행하였다.
 
 
-class Actor_Network(nn.Module):
+class Critic_Network(nn.Module):
     def __init__(self, env):
-        super(Actor_Network, self).__init__()
+        super(Critic_Network, self).__init__()
         if torch.cuda.is_available():
             self.device = "cuda"
         else:
@@ -40,30 +40,24 @@ class Actor_Network(nn.Module):
             self.MLP = False
             self.CNN = True
             #여기 구현은 나중에~~~
-        
-
 
     def MLP_Agent(self):
         self.linear1 = nn.Linear(self.state_shape, 64)
         self.linear2 = nn.Linear(64, 64)
-        self.mu_output = nn.Linear(64, self.action_shape)
-        self.std_output = nn.Linear(64, self.action_shape)
+        self.output = nn.Linear(64, self.action_shape)
 
     
     def forward(self, x):
         if(self.MLP == True):
-            #continuous action에 대해서만 진행함
-            mu, std = self.MLP_forward(x)
+            x = self.MLP_forward(x)
         else:
             pass
             #구현해야하는 곳
-        return mu, std
+        return x.detach()
 
     def MLP_forward(self, x):
+        x = torch.tensor(x).type(torch.long)
         x = F.relu(self.linear1(x))
         x = F.relu(self.linear2(x))
-        mu = self.mu_output(x)
-        std = torch.sigmoid(self.std_output(x))
-        return mu, std
-        
-        
+        x = self.output(x)
+        return x
