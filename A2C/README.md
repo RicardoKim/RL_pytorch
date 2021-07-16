@@ -12,8 +12,19 @@ main.py : A2C 알고라즘을 실행하는 파일입니다.
 
 Model/MLPMODEL : actor와 critic network가 정의된 파일입니다.
 
-## 실행 방법
+## 학습 실행 방법
 
 ```
 python3 main.py
 ```
+
+## 결과 보기
+
+```
+python Result_visualize.py --type 원하는 결과
+```
+원하는 결과
+
+1. actor_loss
+2. critic_loss
+3. episode_reward
