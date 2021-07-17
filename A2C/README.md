@@ -38,4 +38,12 @@ python Result_visualize.py --type 원하는 결과
 
 - Actor Loss | Critic Loss
 
-<img src="./Result/actor_loss.png"  width="250" height="300"> <img src="./Result/critic_loss.png"  width="250" height="300">
+<img src="./Result/actor_loss.png"  width="400" height="300"> <img src="./Result/critic_loss.png"  width="400" height="300">
+
+
+2. Pendulum-v0
+
+학습이 되지 않았다. 
+
+- Episode Reward
+<img src="./Result/pendulum_episode_reward.png"  width="500" height="300">
