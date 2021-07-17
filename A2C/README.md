@@ -33,5 +33,5 @@ python Result_visualize.py --type 원하는 결과
 ## 실험 결과
 
 1. MountainCarContinuous-v0
-<img src="Result/actor_loss.png"  width="700" height="370">
+<img src="./Result/actor_loss.png"  width="700" height="370">
 
