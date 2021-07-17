@@ -1,6 +1,6 @@
 # A2C
 
-현재까지는 state는 1차원 벡터, action은 continous한 환경에서만 작동합니다.
+현재까지는 state는 1차원 벡터, action은 continuous한 환경에서만 작동합니다.
 
 ## 파일 설명 
 
