@@ -1,11 +1,17 @@
 import gym
+import argparse
 from agent import agent
 
-def main():
-    env = gym.make("Pendulum-v0")
+def main(args):
+    env_name = args.env
+    env = gym.make(env_name)
     a2c_agent = agent(env)
-    a2c_agent.train()
+    a2c_agent.train(env_name)
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description='Result visualize.')
+    parser.add_argument('--env', help="What do you want to visualize")
+
+    args = parser.parse_args()
+    main(args)
