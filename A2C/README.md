@@ -15,7 +15,7 @@ Model/MLPMODEL : actor와 critic network가 정의된 파일입니다.
 ## 학습 실행 방법
 
 ```
-python3 main.py
+python3 main.py --env 환경 이름
 ```
 
 ## 결과 보기
