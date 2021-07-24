@@ -5,4 +5,4 @@ class argument():
         self.EPS_CLIP = 0.2
         self.ACTOR_LEARNING_RATE = 3e-5
         self.CRITIC_LEARNING_RATE = 1e-5
-        self.TRAIN_EPOCH = 500
+        self.TRAIN_EPOCH = 100000

@@ -19,7 +19,7 @@ class MLPAGENT(nn.Module):
         x = F.relu(self.linear1(x))
         x = F.relu(self.linear2(x))
         mu = self.mu_output(x)
-        std = F.sigmoid(self.std_output(x))
+        std = F.softplus(self.std_output(x)) + 1e-3
         return mu, std
 
 class MLPCRITIC(nn.Module):

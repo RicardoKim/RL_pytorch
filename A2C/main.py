@@ -11,7 +11,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Result visualize.')
-    parser.add_argument('--env', help="What do you want to visualize")
+    parser.add_argument('--env', help="What do you want to visualize", default="Pendulum-v0")
 
     args = parser.parse_args()
     main(args)
