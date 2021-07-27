@@ -9,7 +9,6 @@ class MLPAGENT(nn.Module):
         self.state_shape = env.reset().shape[0]
         self.action_shape = env.action_space.shape[0]
         self.linear1 = nn.Linear(self.state_shape, 64)
-        self.sigmoid = nn.Sigmoid()
         self.linear2 = nn.Linear(64, 256)
         self.mu_output = nn.Linear(256, self.action_shape)
         self.std_output = nn.Linear(256, self.action_shape)
@@ -18,7 +17,7 @@ class MLPAGENT(nn.Module):
     def forward(self, x):
         x = F.relu(self.linear1(x))
         x = F.relu(self.linear2(x))
-        mu = self.mu_output(x)
+        mu = self.mu_output(x) + 1e-3
         std = F.softplus(self.std_output(x)) + 1e-3
         return mu, std
 
