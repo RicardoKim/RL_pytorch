@@ -71,8 +71,8 @@ class agent(object):
                 action = self.get_action(state)
                 next_state, reward, done, _ = self.env.step(action)
 
-                train_reward = (reward + 8.1) / 8.1
-                self.buffer.append((state, next_state, action, train_reward, done))
+                # train_reward = (reward + 8.1) / 8.1
+                self.buffer.append((state, next_state, action, reward, done))
                 episode_reward += reward
 
                 if(len(self.buffer) < self.argument.BATCH_SIZE):
@@ -84,9 +84,11 @@ class agent(object):
                     batch_next_state = torch.FloatTensor(batch_next_state).to(self.device)
                     batch_reward = torch.FloatTensor(batch_reward).to(self.device)
                     batch_done = torch.FloatTensor(batch_done).to(self.device)
+
                     with torch.no_grad():
                         value_target = batch_reward + self.argument.GAMMA * (1 - batch_done) * self.critic_network(batch_next_state)
                         advantage = value_target - self.critic_network(batch_state)
+
                     mu, std = self.actor_network(batch_state)
                     normal_distribution = Normal(mu, std)
 
@@ -103,14 +105,16 @@ class agent(object):
                     entropy_bonus = normal_distribution.entropy()
 
                     actor_loss = torch.mean(-torch.min(surr1, surr2) - 0.01*entropy_bonus)
-                    self.actor_optimizer.zero_grad()
-                    actor_loss.backward()
-                    self.actor_optimizer.step()
+                    
 
                     value_loss = F.mse_loss(value_target, self.critic_network(batch_state))
-                    self.critic_optimizer.zero_grad()
-                    value_loss.backward()
-                    self.critic_optimizer.step()
+                    for i in self.argument.EPOCHS:
+                        self.actor_optimizer.zero_grad()
+                        actor_loss.backward()
+                        self.actor_optimizer.step()
+                        self.critic_optimizer.zero_grad()
+                        value_loss.backward()
+                        self.critic_optimizer.step()
 
                     self.old_actor_network.load_state_dict(self.actor_network.state_dict())
 
