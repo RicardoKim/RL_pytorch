@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 import os 
 from collections import deque
+
+from torch.functional import Tensor
 from Model.MLPmodel import MLPAGENT
 from Model.MLPmodel import MLPCRITIC
 from Argument import argument
@@ -80,10 +82,13 @@ class agent(object):
 
                 action = self.get_action(state)
                 next_state, reward, done, _ = self.env.step(action)
-
+                
                 # train_reward = (reward + 8.1) / 8.1
                 self.buffer.append((state, next_state, action, reward, done))
-                episode_reward += reward
+                if isinstance(reward, Tensor) :
+                    episode_reward += reward.detach().numpy()
+                else:
+                    episode_reward += reward
 
                 if len(self.buffer) < self.argument.BATCH_SIZE :
                     continue

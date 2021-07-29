@@ -17,7 +17,7 @@ class MLPAGENT(nn.Module):
     def forward(self, x):
         x = F.relu(self.linear1(x))
         x = F.relu(self.linear2(x))
-        mu = F.relu(self.mu_output(x))
+        mu = 2*F.tanh(self.mu_output(x))
         std = F.softplus(self.std_output(x)) + 1e-3
         return mu, std
 
