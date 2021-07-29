@@ -31,6 +31,9 @@ class agent(object):
     def get_action(self, state):
         state = torch.FloatTensor(state)
         mu, std = self.old_actor_network(state)
+        print("=" * 10)
+        print(mu)
+        print(std)
         normal_distribution = Normal(mu, std)
         action = normal_distribution.sample()
         action = torch.clip(action, self.env.action_space.low[0], self.env.action_space.high[0])
