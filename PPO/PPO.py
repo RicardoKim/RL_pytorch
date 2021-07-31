@@ -110,6 +110,8 @@ class agent(object):
                 
             if episode % self.save_interval == 0:
                 print('Episode : ', episode, "Episode Reward", episode_reward)
+                if env_name == "MountainCarContinuous-v0" and episode_reward > -0.1:
+                    return
                 log.iloc[index]['episode_reward'] = episode_reward
                 log.to_csv(directory + "/" + env_name + "_log.csv")
                 torch.save(self.actor_network.state_dict(), model_directory + '/' + env_name+'_saved_model.para')

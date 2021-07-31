@@ -6,8 +6,10 @@ import matplotlib.pyplot as plt
 def visualize(args):
     log_dir = os.getcwd() + "/Log"
     file_list = os.listdir(log_dir)
-    result = pd.read_csv(log_dir + "/" + file_list[0])
+    result = pd.read_csv(log_dir + "/" + file_list[1])
     plt.plot(result[args.type])
+    plt.xlabel("Episode")
+    plt.ylabel(args.type)
     directory = "Result"
     if not os.path.exists(directory):
         os.makedirs(directory)
