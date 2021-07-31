@@ -37,3 +37,7 @@ python Result_visualize.py --type 원하는 결과
 - Episode Reward
 <img src = "Result/ episode_reward.png">
 
+2.Pendulum-v0
+
+버그 수정 중...
+
