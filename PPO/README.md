@@ -34,6 +34,15 @@ python Result_visualize.py --type 원하는 결과
 
 1.MountainCarContinuous-v0
 
+하이퍼 파라미터
+
+GAMMA = 0.95
+EPOCHS = 5
+BATCH_SIZE = 64
+EPS_CLIP = 0.2
+ACTOR_LEARNING_RATE = 1e-5
+CRITIC_LEARNING_RATE = 1e-5
+
 - Episode Reward
 <img src = "Result/ episode_reward.png">
 
